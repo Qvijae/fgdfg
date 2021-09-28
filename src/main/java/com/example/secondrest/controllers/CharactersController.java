@@ -9,31 +9,65 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 
 @RestController
+@RequestMapping(path = "/characters", method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 public class CharactersController {
 
-    @GetMapping(value = "/characters/getAll")
-    public ArrayList<Character> getAll() throws Exception {
-        DbManager db = DbManager.getInstance();
-        return db.tableCharacters.getAll();
-    }
+    private void checkApiKey(String apiKey) throws Exception {
+        String originalApiKey = "1212";
 
-    @PostMapping(value = "/characters/insertOne")
-    public void insertOne(@RequestBody Character character) throws Exception{
-        DbManager db = DbManager.getInstance();
-        db.tableCharacters.insertOne(character);
-    }
-
-    @PutMapping(value = "/characters/updateById/{id}")
-    public void insertOne(@PathVariable int id, @RequestBody Character character) throws Exception{
-        DbManager db = DbManager.getInstance();
-        db.tableCharacters.updateById(id, character);
+        if (originalApiKey.equals(apiKey) == false) {
+            throw new Exception("Ошибка неверный API ключ");
+        }
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAllException(Exception exception) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("ERROR: "+exception.getMessage());
+                .body("ERROR: " + exception.getMessage());
+    }
+
+
+    @GetMapping(value = "/getAll")
+    public ArrayList<Character> getAll(@RequestHeader("APIKEY") String apiKey) throws Exception {
+        checkApiKey(apiKey);
+
+        DbManager db = DbManager.getInstance();
+        return db.tableCharacters.getAll();
+    }
+
+    @GetMapping(value = "/getById/{id}")
+    public Character getById(@RequestHeader("APIKEY") String apiKey, @PathVariable int id) throws Exception {
+        checkApiKey(apiKey);
+
+        DbManager db = DbManager.getInstance();
+        return db.tableCharacters.getById(id);
+    }
+
+    @PostMapping(value = "/insertOne")
+    public void insertOne(@RequestHeader("APIKEY") String apiKey, @RequestBody Character character) throws Exception {
+        checkApiKey(apiKey);
+
+        DbManager db = DbManager.getInstance();
+        db.tableCharacters.insertOne(character);
+    }
+
+    @PutMapping(value = "/updateById/{id}")
+    public void updateById(@RequestHeader("APIKEY") String apiKey, @PathVariable int id, @RequestBody Character character) throws Exception {
+        checkApiKey(apiKey);
+
+        DbManager db = DbManager.getInstance();
+        db.tableCharacters.getById(id);
+        db.tableCharacters.updateById(id, character);
+    }
+
+    @DeleteMapping(value = "/deleteById/{id}")
+    public void deleteById(@RequestHeader("APIKEY") String apiKey, @PathVariable int id) throws Exception {
+        checkApiKey(apiKey);
+
+        DbManager db = DbManager.getInstance();
+        db.tableCharacters.getById(id);
+        db.tableCharacters.deleteById(id);
     }
 
 
